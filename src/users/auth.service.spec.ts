@@ -2,7 +2,7 @@ import { Test } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
 import { UsersService } from "./users.service";
 import { User } from "./user.entity";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 
 describe("AuthService", () => {
 
@@ -12,9 +12,17 @@ describe("AuthService", () => {
     beforeEach(async () => {
     
          // Create a fake copy of users service.
-         fakeUserService = {
-            find: () => Promise.resolve([]),
-            create: (email: string, password: string) => Promise.resolve({id: 1, email, password} as User),
+        const users: User[] = [];
+        fakeUserService = {
+            find: (email: string) => {
+                const filtedUsers = users.filter(user => user.email === email);
+                return Promise.resolve(filtedUsers);
+            },
+            create: (email: string, password: string) => {
+                const user = {email, password, id: Math.floor(Math.random() * 99999)} as User;
+                users.push(user);
+                return Promise.resolve(user);
+            },
         };
     
         const module = await Test.createTestingModule({
@@ -30,10 +38,11 @@ describe("AuthService", () => {
         service = module.get(AuthService);
     });
     
-    
+
     it('can create an instance of auth service', async () => {
         expect(service).toBeDefined();
     });
+
 
     it('creates a new user with a salted and hashed password', async() => {
         const user = await service.signup('shelep@gmail.com', 'test1234');
@@ -43,13 +52,34 @@ describe("AuthService", () => {
         expect(hash).toBeDefined();
     });
 
+
     it('throws an error if user signs up with email that is in use', async () => {
-        fakeUserService.find = () =>
-     
-          Promise.resolve([{ id: 1, email: 'a', password: '1' } as User]);
-        await expect(service.signup('asdf@asdf.com', 'asdf')).rejects.toThrow(
-          BadRequestException,
-        );
-      });
+      await service.signup('shelep@gmail.com', 'test1234');
+      await expect(service.signup('shelep@gmail.com', 'test1234')).rejects.toThrow(
+      BadRequestException,
+    );
+    });
+
+
+    it('throws if sign in is called with unused email', async () => {
+        await expect(
+            service.signin('shelep@gmail.com', 'test1234'),
+        ).rejects.toThrow(NotFoundException);
+    });
+
+
+    it('throws if invalid password is provided', async() => {
+        await service.signup('shelep@gmail.com', 'test1234');
+        await expect(
+            service.signin('shelep@gmail.com', 'password'),
+        ).rejects.toThrow(BadRequestException);
+    });
+    
+
+    it('returns a user if correct password is provided', async() => {
+        await service.signup('shelep@gmail.com', 'test1234');
+        const user = await service.signin('shelep@gmail.com', 'test1234');
+        expect(user).toBeDefined();
+    })
 
 });
