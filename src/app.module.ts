@@ -18,13 +18,15 @@ const cookieSession = require("cookie-session");
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config:ConfigService) => {
-        return{
+      useFactory: (config: ConfigService) => {
+        return {
           type: 'sqlite',
           database: config.get<string>('DB_NAME'),
-          synchronize: true,
+          synchronize: false, // Set to false to prevent schema auto-sync
           entities: [User, Report],
-        }
+          migrations: ["./sqlite1"], // Specify your single migration file
+          migrationsTableName: 'migrations' // Optional: specify a custom table name for tracking migrations
+        };
       }
     }),
   UsersModule,
