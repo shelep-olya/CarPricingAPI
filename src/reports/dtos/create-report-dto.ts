@@ -3,11 +3,12 @@ import {
     IsNumber,
     Min,
     Max,
-    IsLatitude,
     IsLongitude,
-} from 'class-validator'
-export class CreateReportDto{
+    IsLatitude
+} from 'class-validator';
 
+
+export class CreateReportDto{
     @IsString()
     make: string;
 
@@ -15,8 +16,8 @@ export class CreateReportDto{
     model: string;
 
     @IsNumber()
-    @Min(1960)
-    @Max(2024)
+    @Min(1950)
+    @Max(new Date().getFullYear())
     year: number;
 
     @IsNumber()
@@ -24,11 +25,9 @@ export class CreateReportDto{
     @Max(1000000)
     mileage: number;
 
-    @IsNumber()
     @IsLongitude()
     lng: number;
 
-    @IsNumber()
     @IsLatitude()
     lat: number;
 
