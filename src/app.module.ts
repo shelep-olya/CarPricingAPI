@@ -6,10 +6,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
-import { User } from './users/user.entity';
-import { Report } from './reports/report.entity';
-//import ormconfig from '../ormconfig.json';
-import * as ormconfig from "../ormconfig.js";
+// import { User } from './users/user.entity';
+// import { Report } from './reports/report.entity';
+// import { DataSource } from 'typeorm';
+import { AppDataSource } from './data-source';
 const cookieSession = require("cookie-session");
 
 @Module({
@@ -18,7 +18,7 @@ const cookieSession = require("cookie-session");
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
-    TypeOrmModule.forRoot(ormconfig),
+    TypeOrmModule.forRoot(AppDataSource.options),
   UsersModule,
   ReportsModule
 ],
